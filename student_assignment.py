@@ -24,7 +24,8 @@ def generate_hw01(question):
     )
 
     symbol_prompt = """
-你是一個查詢工具,使用json格式返回用戶需求内容
+你是一個查詢工具,使用json格式返回用戶需求内容。
+返回内容務必完整準確且僅返回用戶所需的内容。
 
 回答範例：
 
@@ -44,7 +45,12 @@ def generate_hw01(question):
 
     prompt = PromptTemplate(input_variables=["input"], template=symbol_prompt)
     response = (prompt | llm).invoke({"input", question}).content
-    return response
+    print("response:\n",response)
+    response = str(response).replace("```", "").replace("json", "")
+    data = json.loads(response)
+    print("data:\n", data)
+    ret = json.dumps(data, indent=4)
+    return ret
     # pprint(llm.invoke(prompt.from_messages(input=question)))
     
 def generate_hw02(question):
