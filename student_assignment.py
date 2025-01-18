@@ -1,16 +1,51 @@
 import json
 import traceback
+from pprint import pprint
 
 from model_configurations import get_model_configuration
 
 from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage
+from langchain.prompts import PromptTemplate
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
 
 def generate_hw01(question):
-    pass
+    # Initialize AzureChatOpenAI model
+    llm = AzureChatOpenAI(
+        model=gpt_config['model_name'],
+        deployment_name=gpt_config['deployment_name'],
+        openai_api_key=gpt_config['api_key'],
+        openai_api_version=gpt_config['api_version'],
+        azure_endpoint=gpt_config['api_base'],
+        temperature=gpt_config['temperature']
+    )
+
+    symbol_prompt = """
+你是一個查詢工具,使用json格式返回用戶需求内容
+
+回答範例：
+
+{{
+    "Result": [
+        {{
+            "date": "2024-10-10",
+            "name": "國慶日"
+        }}
+    ]
+}}
+
+問題：{input}
+"""
+
+    # pprint(symbol_prompt)
+
+    prompt = PromptTemplate(input_variables=["input"], template=symbol_prompt)
+    response = (prompt | llm).invoke({"input", question}).content
+    return response
+    # pprint(llm.invoke(prompt.from_messages(input=question)))
     
 def generate_hw02(question):
     pass
