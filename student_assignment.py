@@ -54,7 +54,7 @@ def generate_hw01(question):
 
     prompt = PromptTemplate(input_variables=["input"], template=symbol_prompt)
     response = (prompt | llm).invoke({"input", question}).content
-    return regeneration_json(stsourcering=response)
+    return regeneration_json(source=response)
 
 @tool
 def get_holiday(country: str, year: int, month: int) -> str:
@@ -64,6 +64,7 @@ def get_holiday(country: str, year: int, month: int) -> str:
     response = requests.get(url, params=params)
     print(response.url)
     ret = response.text
+    print(ret)
     return ret
 
 def generate_hw02(question):
