@@ -2,6 +2,7 @@ import json
 import traceback
 import requests
 from pprint import pprint
+import os
 
 from model_configurations import get_model_configuration
 
@@ -14,6 +15,9 @@ from langchain.tools import BaseTool, StructuredTool, tool
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
+
+import base64
+from mimetypes import guess_type
 
 gpt_chat_version = 'gpt-4o'
 gpt_config = get_model_configuration(gpt_chat_version)
@@ -152,9 +156,59 @@ def generate_hw03(question2, question3):
     )
     print("invoke 2:\n", response["output"])
     return regeneration_json(response["output"])
-    
+
+# Function to encode a local image into data URL 
+def local_image_to_data_url(image_path):
+    # Guess the MIME type of the image based on the file extension
+    mime_type, _ = guess_type(image_path)
+    if mime_type is None:
+        mime_type = 'application/octet-stream'  # Default MIME type if none is found
+
+    # Read and encode the image file
+    with open(image_path, "rb") as image_file:
+        base64_encoded_data = base64.b64encode(image_file.read()).decode('utf-8')
+
+    # Construct the data URL
+    return f"data:{mime_type};base64,{base64_encoded_data}"
+
 def generate_hw04(question):
-    pass
+    image_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "baseball.png")
+    print("image_path:", image_path)
+
+    base_json = """
+{{
+    "Result": 
+        {{
+            "score": 5498
+        }}
+}}"""
+
+    messages=[
+        { "role": "system", "content": """
+請用json格式回答用戶問題。
+範例如下：
+{{
+    "Result": 
+        {{
+            "score": 5498
+        }}
+}}""" },
+        { "role": "user", "content": [  
+            { 
+                "type": "text", 
+                "text": question
+            },
+            { 
+                "type": "image_url",
+                "image_url": {
+                    "url": local_image_to_data_url(image_path=image_path)
+                }
+            }
+        ] } 
+    ]
+    response = llm.invoke(messages, max_tokens=2000)
+    print(response)
+    return regeneration_json(response.content)
     
 def demo(question):
     llm = AzureChatOpenAI(
